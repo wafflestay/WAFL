@@ -1,120 +1,8 @@
-// Sources flattened with hardhat v2.11.2 https://hardhat.org
-
-// File @openzeppelin/contracts/utils/Context.sol@v4.7.3
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.1 (utils/Context.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Provides information about the current execution context, including the
- * sender of the transaction and its data. While these are generally available
- * via msg.sender and msg.data, they should not be accessed in such a direct
- * manner, since when dealing with meta-transactions the account sending and
- * paying for execution may not be the actual sender (as far as an application
- * is concerned).
- *
- * This contract is only required for intermediate, library-like contracts.
- */
-abstract contract Context {
-    function _msgSender() internal view virtual returns (address) {
-        return msg.sender;
-    }
-
-    function _msgData() internal view virtual returns (bytes calldata) {
-        return msg.data;
-    }
-}
-
-
-// File @openzeppelin/contracts/access/Ownable.sol@v4.7.3
-
-// OpenZeppelin Contracts (last updated v4.7.0) (access/Ownable.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
- * specific functions.
- *
- * By default, the owner account will be the one that deploys the contract. This
- * can later be changed with {transferOwnership}.
- *
- * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be applied to your functions to restrict their use to
- * the owner.
- */
-abstract contract Ownable is Context {
-    address private _owner;
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    /**
-     * @dev Initializes the contract setting the deployer as the initial owner.
-     */
-    constructor() {
-        _transferOwnership(_msgSender());
-    }
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        _checkOwner();
-        _;
-    }
-
-    /**
-     * @dev Returns the address of the current owner.
-     */
-    function owner() public view virtual returns (address) {
-        return _owner;
-    }
-
-    /**
-     * @dev Throws if the sender is not the owner.
-     */
-    function _checkOwner() internal view virtual {
-        require(owner() == _msgSender(), "Ownable: caller is not the owner");
-    }
-
-    /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    function renounceOwnership() public virtual onlyOwner {
-        _transferOwnership(address(0));
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
-     */
-    function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        _transferOwnership(newOwner);
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Internal function without access restriction.
-     */
-    function _transferOwnership(address newOwner) internal virtual {
-        address oldOwner = _owner;
-        _owner = newOwner;
-        emit OwnershipTransferred(oldOwner, newOwner);
-    }
-}
-
+// Sources flattened with hardhat v2.12.2 https://hardhat.org
 
 // File @openzeppelin/contracts/token/ERC20/IERC20.sol@v4.7.3
 
-
+// SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.6.0) (token/ERC20/IERC20.sol)
 
 pragma solidity ^0.8.0;
@@ -198,9 +86,37 @@ interface IERC20 {
 }
 
 
+// File @openzeppelin/contracts/utils/Context.sol@v4.7.3
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts v4.4.1 (utils/Context.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Provides information about the current execution context, including the
+ * sender of the transaction and its data. While these are generally available
+ * via msg.sender and msg.data, they should not be accessed in such a direct
+ * manner, since when dealing with meta-transactions the account sending and
+ * paying for execution may not be the actual sender (as far as an application
+ * is concerned).
+ *
+ * This contract is only required for intermediate, library-like contracts.
+ */
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address) {
+        return msg.sender;
+    }
+
+    function _msgData() internal view virtual returns (bytes calldata) {
+        return msg.data;
+    }
+}
+
+
 // File @openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol@v4.7.3
 
-
+// SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.1 (token/ERC20/extensions/IERC20Metadata.sol)
 
 pragma solidity ^0.8.0;
@@ -230,7 +146,7 @@ interface IERC20Metadata is IERC20 {
 
 // File @openzeppelin/contracts/token/ERC20/ERC20.sol@v4.7.3
 
-
+// SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.7.0) (token/ERC20/ERC20.sol)
 
 pragma solidity ^0.8.0;
@@ -613,25 +529,73 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 }
 
 
-// File contracts/waffleStay/WaffleStayERC20.sol
+// File contracts/WaffleStay.sol
 
 pragma solidity ^0.8.0;
 
+contract WaffleStay is ERC20 {
 
-contract WaffleStayERC20 is ERC20, Ownable {
+    mapping(address => uint) public lockTimePerAccount;
+    mapping(address => bool) public signers;
+    bool public initialized = false;
+    uint256 public MAX_NUMBER_SIGNERS = 3;
 
-    mapping(address => bool) public frozenAccount;
+    event Freeze(address account, uint lockTime);
 
-    constructor(string memory _name, string memory _symbol) public ERC20(_name, _symbol) {
-        super._mint(msg.sender, 100000000000000000000000000);
+    modifier onlySigner {
+        require(isSigner(msg.sender), 'Non-signer in onlySigner method');
+        _;
     }
 
-    function freezeAccount(address account) external onlyOwner {
-        frozenAccount[account] = true;
+    modifier onlyUninitialized {
+        require(!initialized, 'Contract already initialized');
+        _;
     }
 
-    function unFreezeAccount(address account) external onlyOwner {
-        frozenAccount[account] = false;
+    constructor(string memory _name, string memory _symbol, address _to) public ERC20(_name, _symbol) {
+        super._mint(_to, 1000000000000000000000000000);
+    }
+
+    function initSigners(address[] calldata allowedSigners) external onlyUninitialized {
+        require(allowedSigners.length == MAX_NUMBER_SIGNERS, 'Invalid number of signers');
+
+        for (uint8 i = 0; i < allowedSigners.length; i++) {
+            require(allowedSigners[i] != address(0), 'Invalid signer');
+            signers[allowedSigners[i]] = true;
+        }
+
+        initialized = true;
+    }
+
+
+    function freezeAccount(address account, bytes[] calldata signatures, uint lockTime) external {
+        // Verify the other signer
+        bytes32 operationHash = keccak256(
+            abi.encodePacked(
+                account,
+                lockTime
+            )
+        );
+        // check signatures
+        verifyMultiSig(operationHash, signatures);
+        console.logUint(lockTime);
+        console.logUint(block.timestamp);
+        lockTimePerAccount[account] = lockTime;
+        emit Freeze(account, lockTime);
+    }
+
+    function unFreezeAccount(address account, bytes[] calldata signatures, uint lockTime) external {
+        // Verify the other signer
+        bytes32 operationHash = keccak256(
+            abi.encodePacked(
+                account,
+                lockTime
+            )
+        );
+        // check signatures
+        verifyMultiSig(operationHash, signatures);
+        lockTimePerAccount[account] = lockTime;
+        emit Freeze(account, block.timestamp);
     }
 
     function _beforeTokenTransfer(
@@ -639,9 +603,54 @@ contract WaffleStayERC20 is ERC20, Ownable {
         address to,
         uint256 value
     ) internal virtual override {
-        require(!frozenAccount[from], "From Frozen");
-        require(!frozenAccount[to], "To Frozen");
+        uint lockTimeFrom = lockTimePerAccount[from];
+        uint lockTimeTo = lockTimePerAccount[to];
+        require(block.timestamp >= lockTimeFrom, "Lock state From Address");
+        require(block.timestamp >= lockTimeTo, "Lock state To Address");
         super._beforeTokenTransfer(from, to, value);
     }
 
+    function getFrozenBlockTime(address account) public view returns (uint) {
+        return lockTimePerAccount[account];
+    }
+
+    function verifyMultiSig(
+        bytes32 operationHash,
+        bytes[] calldata signatures
+    ) public returns (bool) {
+        for (uint8 i = 0; i < signatures.length; i++) {
+            // recover signed address
+            address signedAccount = recoverAddressFromSignature(operationHash, signatures[i]);
+            // check is signed account
+            require(isSigner(signedAccount), 'Invalid signer');
+            // signer can not be equal
+            require(signedAccount != msg.sender, 'Signers cannot be equal');
+        }
+        return true;
+    }
+
+    function recoverAddressFromSignature(
+        bytes32 operationHash,
+        bytes memory signature
+    ) public view returns (address) {
+        require(signature.length == 65, 'Invalid signature - wrong length');
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, operationHash));
+        (bytes32 r, bytes32 s, uint8 v) = splitSignature(signature);
+        return ecrecover(prefixedHash, v, r, s);
+    }
+
+    function splitSignature(bytes memory sig) public view returns (bytes32 r, bytes32 s, uint8 v) {
+        require(sig.length == 65, "invalid signature length");
+        assembly {
+            r := mload(add(sig, 32))
+            s := mload(add(sig, 64))
+            v := byte(0, mload(add(sig, 96)))
+        }
+        return (r, s, v);
+    }
+
+    function isSigner(address signer) public view returns (bool) {
+        return signers[signer];
+    }
 }
