@@ -1,4 +1,6 @@
+테스트 
+smart contract : 0xd8986b54cb3c2a50f033c79647ad2b006868553d
 
-smart contract : 0xcfa1a578e652c69623ddc9d0a7efe30f2449b694
+smart contract : 0x57ad75c0d3c9b97ad4bc8225fab4c9efedbc81ef
 
-https://etherscan.io/address/0xcfa1a578e652c69623ddc9d0a7efe30f2449b694#code
+https://etherscan.io/address/0x57ad75c0d3c9b97ad4bc8225fab4c9efedbc81ef
