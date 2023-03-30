@@ -1,6 +1,8 @@
 테스트 
-smart contract : 0xd8986b54cb3c2a50f033c79647ad2b006868553d
+ Mumbai net 
+. contract address : 0x42811674ad60e2efd6d71f832d18121ce13a6073
+. https://mumbai.polygonscan.com/token/0x42811674ad60e2efd6d71f832d18121ce13a6073
 
-smart contract : 0x57ad75c0d3c9b97ad4bc8225fab4c9efedbc81ef
-
-https://etherscan.io/address/0x57ad75c0d3c9b97ad4bc8225fab4c9efedbc81ef
+Polygon
+smart contract : 0x7541cf77fa09602fa6f6c102b65f807c9f9e0ce8
+https://polygonscan.com/token/0x7541cf77fa09602fa6f6c102b65f807c9f9e0ce8
